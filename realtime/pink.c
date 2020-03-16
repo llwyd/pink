@@ -11,6 +11,7 @@
 #include <time.h>
 
 #define FS ( 44100 ) /* Hz */
+#define SOS_STAGES ( 2 )
 
 typedef struct
 {
@@ -21,17 +22,14 @@ typedef struct
 typedef struct
 {
 	float y;
-	float s0[2];
-	float s1[2];
+	float *s[SOS_STAGES];
+	float *b[SOS_STAGES];
+	float *a[SOS_STAGES];
 }pa_callbackdata;
 
-	float b1[3]={1.f, -0.07568359f, 0.f};
-	float a1[3]={1.f, -0.53567505f, 0.f};
 
-	float b0[3]={1.f, -1.81835938f, 0.82094419f};
-	float a0[3]={1.f, -1.94363403f, 0.9438566f};
 
-static pa_callbackdata data;
+
 
 static int Pink_FilterCallback( const void *input,
                                       void *output,
@@ -77,19 +75,17 @@ static int Pink_FilterCallback( const void *input,
 
 	float y = data->y;	
 	float x;
-
+	
 	for(int i=0;i<frameCount;i++)
 	{
 		x = (((float)rand()/(float)RAND_MAX)*2.f)-1.f;
-		y			=(b0[0]*x)				+ data->s0[0];
-		data->s0[0]	=(b0[1]*x) - (a0[1]*y) 	+ data->s0[1];
-		data->s0[1]	=(b0[2]*x) - (a0[2]*y);
-		x = y;
-
-		y			=(b1[0]*x)				+ data->s1[0];
-		data->s1[0]	=(b1[1]*x) - (a1[1]*y) 	+ data->s1[1];
-		data->s1[1]	=(b1[2]*x) - (a1[2]*y);
-		y=y/5;
+		for(int j=0;j<SOS_STAGES;j++)
+		{
+			y				=(data->b[j][0]*x)						+ data->s[j][0];
+			data->s[j][0]	=(data->b[j][1]*x) - (data->a[j][1]*y) 	+ data->s[j][1];
+			data->s[j][1]	=(data->b[j][2]*x) - (data->a[j][2]*y);
+			x = y;
+		}
 		*out++ = y;
 	}
 	data->y=y;
@@ -100,15 +96,30 @@ static int Pink_FilterCallback( const void *input,
 int main( int argc, char ** argv)
 {
 	PaStream * audioStream;
+	pa_callbackdata data;
 	
-	srand((unsigned int)time(NULL));
-	Pa_Initialize();
+	float b1[3]={ 0.23529412, -0.0178079 ,  0.f };
+	float a1[3]={ 1.        , -0.53567505,  0.f};
+
+	float b0[3]={ 1.         ,-1.81835938,  0.82094419};
+	float a0[3]={ 1.         ,-1.94363403,  0.9438566};
+
+	float s0[2]={0.0f};
+	float s1[2]={0.0f};
+
+	data.b[0]=b0;
+	data.b[1]=b1;
+
+	data.a[0]=a0;
+	data.a[1]=a1;
+
+	data.s[0]=s0;
+	data.s[1]=s1;
 
 	data.y=0.0f;
-	data.s0[0]=0.0f;
-	data.s0[1]=0.0f;
-	data.s1[0]=0.0f;
-	data.s1[1]=0.0f;
+
+	srand((unsigned int)time(NULL));
+	Pa_Initialize();
 
 	Pa_OpenDefaultStream(&audioStream,0,1,paFloat32,FS,128,Pink_FilterCallback,&data);
 	Pa_StartStream(audioStream);
