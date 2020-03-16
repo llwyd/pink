@@ -20,29 +20,41 @@ typedef struct
 
 typedef struct
 {
-	sos_t * filter[2];
-}pa_filterdata;
+	float y;
+	float s0[2];
+	float s1[2];
+}pa_callbackdata;
 
-static pa_filterdata data;
+	float b1[3]={1.f, -0.07568359f, 0.f};
+	float a1[3]={1.f, -0.53567505f, 0.f};
 
-static int Pink_FilterCallback(void);
+	float b0[3]={1.f, -1.81835938f, 0.82094419f};
+	float a0[3]={1.f, -1.94363403f, 0.9438566f};
+
+static pa_callbackdata data;
+
+static int Pink_FilterCallback( const void *input,
+                                      void *output,
+                                      unsigned long frameCount,
+                                      const PaStreamCallbackTimeInfo* timeInfo,
+                                      PaStreamCallbackFlags statusFlags,
+                                      void *callbackData );
 static int Pink_VossCallback(void);
 static int Pink_WhiteCallback( const void *input,
                                       void *output,
                                       unsigned long frameCount,
                                       const PaStreamCallbackTimeInfo* timeInfo,
                                       PaStreamCallbackFlags statusFlags,
-                                      void *userData );
+                                      void *callbackData );
 
 
-static int Pink_WhiteCallback( const void *input,
-                                      void *output,
-                                      unsigned long frameCount,
-                                      const PaStreamCallbackTimeInfo* timeInfo,
-                                      PaStreamCallbackFlags statusFlags,
-					void *userData)
+static int Pink_WhiteCallback( 	const void *input,
+                            	void *output,
+                                unsigned long frameCount,
+                                const PaStreamCallbackTimeInfo* timeInfo,
+                                PaStreamCallbackFlags statusFlags,
+								void *callbackData)
 {
-
 	float * out = (float *)output;
 		
 	for(int i=0;i<frameCount;i++)
@@ -52,44 +64,66 @@ static int Pink_WhiteCallback( const void *input,
 
 	return 0;
 }
+
+static int Pink_FilterCallback( const void *input,
+                                void *output,
+                                unsigned long frameCount,
+                                const PaStreamCallbackTimeInfo* timeInfo,
+                                PaStreamCallbackFlags statusFlags,
+								void *callbackData)
+{
+	pa_callbackdata * data = (pa_callbackdata*)callbackData;
+	float * out = (float *)output;
+
+	float y = data->y;	
+	float x;
+
+	for(int i=0;i<frameCount;i++)
+	{
+		x = (((float)rand()/(float)RAND_MAX)*2.f)-1.f;
+		y			=(b0[0]*x)				+ data->s0[0];
+		data->s0[0]	=(b0[1]*x) - (a0[1]*y) 	+ data->s0[1];
+		data->s0[1]	=(b0[2]*x) - (a0[2]*y);
+		x = y;
+
+		y			=(b1[0]*x)				+ data->s1[0];
+		data->s1[0]	=(b1[1]*x) - (a1[1]*y) 	+ data->s1[1];
+		data->s1[1]	=(b1[2]*x) - (a1[2]*y);
+		y=y/5;
+		*out++ = y;
+	}
+	data->y=y;
+
+	return 0;
+}
+
 int main( int argc, char ** argv)
 {
 	PaStream * audioStream;
 	
 	srand((unsigned int)time(NULL));
 	Pa_Initialize();
-	Pa_OpenDefaultStream(&audioStream,0,1,paFloat32,FS,128,Pink_WhiteCallback,&data);
+
+	data.y=0.0f;
+	data.s0[0]=0.0f;
+	data.s0[1]=0.0f;
+	data.s1[0]=0.0f;
+	data.s1[1]=0.0f;
+
+	Pa_OpenDefaultStream(&audioStream,0,1,paFloat32,FS,128,Pink_FilterCallback,&data);
 	Pa_StartStream(audioStream);
 		
 	printf("Generating pink noise\n");
+
+	Pa_Sleep(5000);
+	Pa_StopStream(&audioStream);
+	Pa_CloseStream(&audioStream);
+	Pa_Terminate();
+	return 0;
+}
+
 	/* Generate White noise */
-	int fs = 44100;
-	int samples = 4096;
-	float white[4096]={0.0f};
-	for( int i=0;i<samples;i++)
-	{
-		white[i]=(float)rand()/(float)RAND_MAX;
-		white[i]*=2.0;
-		white[i]-=1.0;
-	}
-
-	/* Perform filteirng*/
-	sos_t filter[2];
-
-	float b1[3]={1.f, -0.07568359f, 0.f};
-	float a1[3]={1.f, -0.53567505f, 0.f};
-
-	float b0[3]={1.f, -1.81835938f, 0.82094419f};
-	float a0[3]={1.f, -1.94363403f, 0.9438566f};
-
-	/* Storage buffers */
-	float s0[2] = {0.0f};
-	float s1[2] = {0.0f};
-
-	/* Output buffers */	
-	float y0[4096]={0.0f};
-	float y1[4096]={0.0f};
-
+	
 	/*
 	FILE * fp = fopen("pink.txt","w");
 	for(int i=0;i<samples;i++)
@@ -106,10 +140,3 @@ int main( int argc, char ** argv)
 	}
 	fclose(fp);
 	*/	
-
-	Pa_Sleep(5000);
-	Pa_StopStream(&audioStream);
-	Pa_CloseStream(&audioStream);
-	Pa_Terminate();
-	return 0;
-}
