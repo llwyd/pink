@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <unistd.h>
 
 #define FS ( 44100 ) /* Hz */
 #define SOS_STAGES ( 2 )
@@ -133,6 +134,23 @@ int main( int argc, char ** argv)
 	PaStream * audioStream;
 	pa_callbackdata data;
 	pa_stereocallbackdata stereoData;
+	int fs = FS;
+	int duration = 2;
+
+	int inputFlags;
+	while((inputFlags = getopt( argc, argv, "d:f:" ) ) != -1 )
+	{
+		switch( inputFlags )
+		{
+			case 'd':
+				duration = atoi( optarg );
+				break;
+			case 'f':
+				fs = atoi( optarg );
+				break;
+		}
+	}
+
 
 	float b1[3]={ 0.23529412, -0.0178079 ,  0.f };
 	float a1[3]={ 1.        , -0.53567505,  0.f};
@@ -175,11 +193,11 @@ int main( int argc, char ** argv)
 
 	//Pa_OpenDefaultStream(&audioStream,0,1,paFloat32,FS,128,Pink_FilterCallback,&data);
 	
-	Pa_OpenDefaultStream(&audioStream,0,2,paFloat32,FS,128,Pink_StereoFilterCallback,&stereoData);
+	Pa_OpenDefaultStream(&audioStream,0,2,paFloat32,fs,128,Pink_StereoFilterCallback,&stereoData);
 	Pa_StartStream(audioStream);
 	printf("Generating pink noise\n");
 
-	Pa_Sleep(5000);
+	Pa_Sleep( duration * 1000 );
 	Pa_StopStream(&audioStream);
 	Pa_CloseStream(&audioStream);
 	Pa_Terminate();
