@@ -15,6 +15,7 @@ int main( int argc, char **argv )
 {
 	snd_pcm_t *handle;
 	snd_pcm_sframes_t frames;
+	int err = 0;
 
 	snd_pcm_open( &handle, "default", SND_PCM_STREAM_PLAYBACK, SND_PCM_ASYNC);
 
@@ -32,7 +33,11 @@ int main( int argc, char **argv )
 	{
 		x[0] = (((float)rand()/(float)RAND_MAX)*2.f)-1.f;
 		x[1] = (((float)rand()/(float)RAND_MAX)*2.f)-1.f;
-		snd_pcm_writei( handle, x, 2);
+		err = snd_pcm_writei( handle, x, 2);
+		if( err == -EPIPE )
+		{
+			fprintf(stderr, "Underrun\n");
+		}
 	}
 	
 	snd_pcm_drain( handle );
