@@ -4,4 +4,4 @@ realtime/pink.txt
 realtime/pink
 *.png
 *.wav
-
+alsa/pink
