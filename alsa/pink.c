@@ -21,16 +21,18 @@ int main( int argc, char **argv )
 	snd_pcm_set_params( 	handle,
 				SND_PCM_FORMAT_FLOAT_BE, 	/* big endian*/
 				SND_PCM_ACCESS_RW_INTERLEAVED,	/* interleaved */
-				1,				/* channels */
+				2,				/* channels */
 				44100,				/* sample rate */
-				1,				/* alsa resampling */
+				2,				/* alsa resampling */
 				250000);			/* desired latency */
 	
 	/* run for 4 seconds */
+	float x[2] ={0.0f};
 	for(int i=0; i < (44100*4); i++)
 	{
-		float x = (((float)rand()/(float)RAND_MAX)*2.f)-1.f;
-		snd_pcm_writei( handle, &x, 1);
+		x[0] = (((float)rand()/(float)RAND_MAX)*2.f)-1.f;
+		x[1] = (((float)rand()/(float)RAND_MAX)*2.f)-1.f;
+		snd_pcm_writei( handle, x, 2);
 	}
 	
 	snd_pcm_drain( handle );
