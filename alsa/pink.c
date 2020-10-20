@@ -52,7 +52,7 @@ int main( int argc, char **argv )
 	float sl[2][2] = {0.0f};
 	float sr[2][2] = {0.0f};
 	FILE *fp = fopen("pink.txt", "w");
-	for(int i=0; i < (FS*4); i++)
+	for(int i=0; i < 32768; i++)
 	{
 		xl = (((float)rand()/(float)RAND_MAX)*2.f)-1.f;
 		xr = (((float)rand()/(float)RAND_MAX)*2.f)-1.f;

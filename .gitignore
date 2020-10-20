@@ -6,3 +6,4 @@ realtime/pink
 *.wav
 alsa/pink
 alsa/sine
+alsa/pink.txt
