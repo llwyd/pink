@@ -5,3 +5,4 @@ realtime/pink
 *.png
 *.wav
 alsa/pink
+alsa/sine
