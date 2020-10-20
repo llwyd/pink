@@ -47,9 +47,11 @@ int main( int argc, char **argv )
 	/* run for 4 seconds */
 	float xl,xr,yl,yr = 0.0f;
 
+	float y[2];
+
 	float sl[2][2] = {0.0f};
 	float sr[2][2] = {0.0f};
-
+	FILE *fp = fopen("pink.txt", "w");
 	for(int i=0; i < (FS*4); i++)
 	{
 		xl = (((float)rand()/(float)RAND_MAX)*2.f)-1.f;
@@ -71,14 +73,18 @@ int main( int argc, char **argv )
 			xr = yr;
 		}
 		
+		fprintf(fp, "%f\n", yl);
 
-		err = snd_pcm_writei( handle, &yl, 1);
-		err = snd_pcm_writei( handle, &yr, 1);
+		y[0] = yl;
+		y[1] = yr;
+
+		err = snd_pcm_writei( handle, y, 2);
 		if( err == -EPIPE )
 		{
 			fprintf(stderr, "Underrun\n");
 		}
 	}
+	fclose(fp);
 	
 	snd_pcm_drain( handle );
 	snd_pcm_close( handle );
