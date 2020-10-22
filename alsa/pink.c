@@ -39,7 +39,7 @@ int main( int argc, char **argv )
 	snd_pcm_set_params( 	handle,
 				SND_PCM_FORMAT_FLOAT_LE, 	/* little endian*/
 				SND_PCM_ACCESS_RW_INTERLEAVED,	/* interleaved */
-				2,				/* channels */
+				CHANNELS,				/* channels */
 				FS,				/* sample rate */
 				2,				/* alsa resampling */
 				250000);			/* desired latency */
