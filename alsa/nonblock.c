@@ -42,7 +42,7 @@ int main( int argc, char **argv )
 	//int readIdx 	= 0;  	/* to sound card */
 	//int writeIdx 	= 0; 	/* to audio buffer */
 
-	for(int i=0; i < (len); i++)
+	for(int i=0; i < 480; i++)
 	{
 		x = sin(2 * M_PI * f * (float)i * T);
 		y[i] = x;
@@ -50,7 +50,8 @@ int main( int argc, char **argv )
 
 	int rc = snd_pcm_avail_update( handle );
 	printf("%d frames\n", rc);
-	int k=0;
+	int k = 0; /* read index */
+	int r = 480; /* write index */
 	int samples = 0;
 	while( k < len )
 	{
@@ -73,6 +74,10 @@ int main( int argc, char **argv )
 		else
 		{
 			/* calculate new values */
+			if(r<len){
+				x = sin(2 * M_PI * f * (float)r * T);
+				y[r++] = x;
+			}
 		}
 			
 	}	
