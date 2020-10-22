@@ -67,8 +67,14 @@ int main( int argc, char **argv )
 			{
 				fprintf(stderr, "Underrun\n");
 			}
-			k+=rc;
-		}		
+			printf("Values written: %d\n", err);
+			k+=err;
+		}	
+		else
+		{
+			/* calculate new values */
+		}
+			
 	}	
 	snd_pcm_drain( handle );
 	snd_pcm_close( handle );
