@@ -12,6 +12,12 @@
 #include <time.h>
 #include <unistd.h>
 
+#define FS 		( 48000 ) /* Hz */
+#define LATENCY		( 10000 ) /* us */
+
+#define BUFFER_SIZE ( (float)FS * ( (float)LATENCY / (1000.f * 1000.f)))
+
+
 int main( int argc, char **argv )
 {
 	snd_pcm_t *handle;
@@ -24,9 +30,9 @@ int main( int argc, char **argv )
 				SND_PCM_FORMAT_FLOAT_LE, 	/* little endian*/
 				SND_PCM_ACCESS_RW_INTERLEAVED,	/* interleaved */
 				1,				/* channels */
-				48000,				/* sample rate */
+				FS,				/* sample rate */
 				2,				/* alsa resampling */
-				10000);			/* desired latency */
+				LATENCY);			/* desired latency */
 	
 	/* run for 4 seconds */
 	float x = 0.0f;
@@ -83,6 +89,8 @@ int main( int argc, char **argv )
 	}	
 	snd_pcm_drain( handle );
 	snd_pcm_close( handle );
+
+	printf("%d\n", (int)BUFFER_SIZE);
 	return 0;
 }
 
