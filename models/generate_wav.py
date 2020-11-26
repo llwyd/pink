@@ -28,9 +28,9 @@ def pink_filter( n ):
 	pink = signal.sosfilt(sos,white)
 	return norm(pink)
 
-len_mins = 10
+len_mins = 45
 fs = 44100
-samples = fs * 10 * 60
+samples = fs * len_mins * 60
 
 max_amplitude = np.iinfo(np.int16).max
 
