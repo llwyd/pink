@@ -34,14 +34,14 @@ const static float a[][3] =
 	{ 1.        , -0.53567505,  0.f},
 };
 
-void Pink( snd_pcm_t * handle, snd_pcm_uframes_t * frames )
+void Pink( FILE *fp, snd_pcm_t * handle, snd_pcm_uframes_t * frames )
 {
     const snd_pcm_channel_area_t *my_areas;
     snd_pcm_uframes_t offset;
     static int jdx = 0U;    
     int steps = 0;
     float x = 0.0f;
-    static float y = 0.0f;
+    float y = 0.0f;
 
     /* Filter Stuff */
     static float s[2][2];
@@ -64,8 +64,11 @@ void Pink( snd_pcm_t * handle, snd_pcm_uframes_t * frames )
             y 	       = b[j][0]*x 		 	        + s[j][0];
 			s[j][0]    = b[j][1]*x	- a[j][1]*y 	+ s[j][1];
 			s[j][1]    = b[j][2]*x	- a[j][2]*y;
+
+            x = y;
         }
         
+        fprintf(fp, "%f\n", y);
         *samples = y;
         jdx++;
         samples++;
@@ -102,7 +105,8 @@ int main( int argc, char **argv )
 
     int rc = snd_pcm_avail_update( handle );
     frames = rc;
-    Pink(handle, &frames);
+    FILE *fp = fopen("pi_pink.txt", "w");
+    Pink(fp, handle, &frames);
     
     err = snd_pcm_start( handle );
     if( err < 0 )
@@ -111,13 +115,15 @@ int main( int argc, char **argv )
     }
     snd_pcm_prepare(handle);
     
-    while(1)
+    int counter = 0;
+    while(counter < 48000)
     {        
         rc = snd_pcm_avail_update( handle );
         if( rc > 0)
         {
             frames = rc;            
-            Pink( handle, &frames);
+            Pink(fp, handle, &frames);
+            counter+= frames;
         }
         else
         {
@@ -125,7 +131,7 @@ int main( int argc, char **argv )
         }
         
     }
-    
+    fclose(fp);
     snd_pcm_drain( handle );
 	snd_pcm_close( handle ); 
 

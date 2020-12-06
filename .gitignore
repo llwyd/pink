@@ -3,6 +3,8 @@ realtime/portaudio.h
 realtime/pink.txt
 realtime/pink
 pi/pink
+pi/pi_pink.txt
+pi/verify.py
 *.png
 *.wav
 alsa/pink
