@@ -2,6 +2,7 @@ realtime/libportaudio.a
 realtime/portaudio.h
 realtime/pink.txt
 realtime/pink
+pi/pink
 *.png
 *.wav
 alsa/pink
