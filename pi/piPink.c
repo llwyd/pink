@@ -12,13 +12,27 @@
 #include <time.h>
 #include <unistd.h>
 
-#define FS 		( 48000 ) /* Hz */
+#define FS 		    ( 48000 ) /* Hz */
 #define LATENCY		( 10000 ) /* us */
+#define SOS_STAGES 	( 2 )
+#define CHANNELS 	( 2 )
 
 #define BUFFER_SIZE (int)( (float)FS * ( (float)LATENCY / (1000.f * 1000.f)))
 
 const float f = 1000.f;
 const float T = 1.f / (float)FS;
+
+const static float b[][3] = 
+{
+	{ 1.f         ,-1.81835938f,  0.82094419f},
+	{ 0.23529412f, -0.0178079f ,  0.f },
+};
+
+const static float a[][3] =
+{
+	{ 1.         ,-1.94363403,  0.9438566},
+	{ 1.        , -0.53567505,  0.f},
+};
 
 void Pink( snd_pcm_t * handle, snd_pcm_uframes_t * frames )
 {
@@ -26,6 +40,11 @@ void Pink( snd_pcm_t * handle, snd_pcm_uframes_t * frames )
     snd_pcm_uframes_t offset;
     static int jdx = 0U;    
     int steps = 0;
+    float x = 0.0f;
+    static float y = 0.0f;
+
+    /* Filter Stuff */
+    static float s[2][2];
 
     int err = snd_pcm_mmap_begin(handle, &my_areas, &offset, frames);
     if( err < 0)
@@ -39,7 +58,15 @@ void Pink( snd_pcm_t * handle, snd_pcm_uframes_t * frames )
 
     for(int i =0; i < *frames; i++)
     {
-        *samples = sin(2 * M_PI * f * (float)jdx * T);
+        x = (((float)rand()/(float)RAND_MAX)*2.f)-1.f;
+        for( int j = 0; j < SOS_STAGES; j++ )
+        {
+            y 	       = b[j][0]*x 		 	        + s[j][0];
+			s[j][0]    = b[j][1]*x	- a[j][1]*y 	+ s[j][1];
+			s[j][1]    = b[j][2]*x	- a[j][2]*y;
+        }
+        
+        *samples = y;
         jdx++;
         samples++;
     }
