@@ -83,15 +83,28 @@ x3 = signal.sosfilt(band[3].low,h)
 x3 = signal.sosfilt(band[3].high,x3)
 
 
+h = signal.unit_impulse(sig_len)
+
+y = 0
+for i in range(0,len(band)):
+    h = signal.unit_impulse(sig_len)
+    z = signal.sosfilt(band[i].low,h)
+    z = signal.sosfilt(band[i].high,z)
+    y += z
+
+
 X,Xf,Xdb = fft(x,fs,sig_len)
 X1,X1f,X1db = fft(x1,fs,sig_len)
 X2,X2f,X2db = fft(x2,fs,sig_len)
 X3,X3f,X3db = fft(x3,fs,sig_len)
 
+Y,Yf,Ydb = fft(y,fs,sig_len)
+
 l, = plt.semilogx(Xf,Xdb)
 l1, = plt.semilogx(X1f,X1db)
 l2, = plt.semilogx(X2f,X2db)
 l3, = plt.semilogx(X3f,X3db)
+ly, = plt.semilogx(Yf,Ydb)
 
 
 plt.hlines(-3,0,max(Xf))
