@@ -5,6 +5,7 @@
 *
 */
 #include <inttypes.h>
+#include "pink.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -70,21 +71,24 @@ int main( int argc, char ** argv )
         printf( "Generating Pink Noise for %d hour(s), %d minute(s) and %d second(s)\n", timeSetup.h, timeSetup.m, timeSetup.s );
         printf( "(%.0f second(s))\n", runTime );        
         
+        Pink_Init();
         time( &startTime );
         time( &currentTime );
 
         while( timeDelta < runTime )
         {
-
+            Pink_Run();
             /* run last */
             timeDelta = difftime( currentTime, startTime );
             time( &currentTime );
         }
+        Pink_Close();
     }
     else
     {
         printf("Missing time information, returning\n");
     }
+    printf("FIN\n");
     return 0;
 }
 
