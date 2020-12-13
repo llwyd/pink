@@ -27,30 +27,9 @@ const static float a[][3] =
 
 static snd_pcm_t *handle;
 
-void Pink(snd_pcm_uframes_t * frames )
+static float SOS_Filter( float x, float s[2][2] )
 {
-    const snd_pcm_channel_area_t *my_areas;
-    snd_pcm_uframes_t offset;
-    int steps = 0;
-    float x = 0.0f;
-    float y = 0.0f;
-
-    /* Filter Stuff */
-    static float s[2][2];
-
-    int err = snd_pcm_mmap_begin(handle, &my_areas, &offset, frames);
-    if( err < 0)
-    {
-        printf("Error: %s\n", snd_strerror(err));
-    }
-    /* calculate sine*/
-    float * samples = ((float *)my_areas[0].addr) + (my_areas[0].first / 32);
-    steps = my_areas[0].step / 32;
-    samples+= offset * steps;
-
-    for(int i =0; i < *frames; i++)
-    {
-        x = (((float)rand()/(float)RAND_MAX)*2.f)-1.f;
+        float y = 0.0f;
         for( int j = 0; j < SOS_STAGES; j++ )
         {
             y 	       = b[j][0]*x 		 	        + s[j][0];
@@ -59,10 +38,47 @@ void Pink(snd_pcm_uframes_t * frames )
 
             x = y;
         }
+        return y;
+}
+
+static void Pink(snd_pcm_uframes_t * frames )
+{
+    const snd_pcm_channel_area_t *my_areas;
+    snd_pcm_uframes_t offset;
+    int steps_l = 0;
+    int steps_r = 0;
+    float x = 0.0f;
+
+    /* Filter Stuff */
+    static float s_l[2][2];
+    static float s_r[2][2];
+
+    int err = snd_pcm_mmap_begin(handle, &my_areas, &offset, frames);
+    if( err < 0)
+    {
+        printf("Error: %s\n", snd_strerror(err));
+    }
+
+    float * samples_l = ((float *)my_areas[0].addr) + (my_areas[0].first / 32);
+    float * samples_r = ((float *)my_areas[1].addr) + (my_areas[1].first / 32);
+    
+    steps_l = my_areas[0].step / 32;
+    steps_r = my_areas[1].step / 32;
+    
+    samples_l += offset * steps_l;
+    samples_r += offset * steps_r;
+
+    for(int i =0; i < *frames; i++)
+    {
         
-        *samples = y;
-        jdx++;
-        samples++;
+        x = (((float)rand()/(float)RAND_MAX)*2.f)-1.f;
+        *samples_l = SOS_Filter( x, s_l ); 
+        
+        x = (((float)rand()/(float)RAND_MAX)*2.f)-1.f;
+        *samples_r = SOS_Filter( x, s_r );
+        
+        samples_l++;
+        samples_r++;
     }
     
     /* Commit new samples */
@@ -89,8 +105,8 @@ extern void Pink_Init( void )
 
     snd_pcm_set_params( handle,
                         SND_PCM_FORMAT_FLOAT_LE, 	        /* little endian*/
-                        SND_PCM_ACCESS_MMAP_INTERLEAVED,	/* interleaved */
-                        1,				        /* channels */
+                        SND_PCM_ACCESS_MMAP_NONINTERLEAVED,	/* interleaved */
+                        CHANNELS,				/* channels */
                         FS,				        /* sample rate */
                         2,				        /* alsa resampling */
                         LATENCY);			        /* desired latency */
