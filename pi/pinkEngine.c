@@ -75,6 +75,7 @@ int main( int argc, char ** argv )
         time( &startTime );
         time( &currentTime );
 
+        printf("Generating Pink Noise... \n");
         while( timeDelta < runTime )
         {
             Pink_Run();

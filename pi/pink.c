@@ -32,9 +32,9 @@ static float SOS_Filter( float x, float s[2][2] )
         float y = 0.0f;
         for( int j = 0; j < SOS_STAGES; j++ )
         {
-            y 	       = b[j][0]*x 		 	        + s[j][0];
-			s[j][0]    = b[j][1]*x	- a[j][1]*y 	+ s[j][1];
-			s[j][1]    = b[j][2]*x	- a[j][2]*y;
+            y 	       = b[j][0]*x                      + s[j][0];
+	    s[j][0]    = b[j][1]*x	- a[j][1]*y 	+ s[j][1];
+	    s[j][1]    = b[j][2]*x	- a[j][2]*y;
 
             x = y;
         }
