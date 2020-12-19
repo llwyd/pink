@@ -59,15 +59,18 @@ band = EQBand(50,1000,fs)
 sig_len = 8192 * 8 
 freqs = calculate_bands(fs)
 
+print(freqs)
+
 band = []
-b = EQBand(freqs[1],0,fs)
+b = EQBand(freqs[1],freqs[0],fs)
 band.append(b)
-for i in range(1,len(freqs)-2):
-    if(i%2 == 0):
-        b = EQBand(freqs[i],freqs[i+1],fs)
-    else:
-        b = EQBand(freqs[i+1],freqs[i],fs)
-    band.append(b)
+b = EQBand(freqs[2],freqs[1],fs)
+band.append(b)
+b = EQBand(freqs[3],freqs[2],fs)
+band.append(b)
+b = EQBand(freqs[4],freqs[3],fs)
+band.append(b)
+
 
 h = signal.unit_impulse(sig_len)
 x = signal.sosfilt(band[0].low,h)
@@ -88,9 +91,11 @@ h = signal.unit_impulse(sig_len)
 y = 0
 for i in range(0,len(band)):
     h = signal.unit_impulse(sig_len)
-    z = signal.sosfilt(band[i].low,h)
-    z = signal.sosfilt(band[i].high,z)
-    y += z
+    z0 = signal.sosfilt(band[i].low,h)
+    z1 = signal.sosfilt(band[i].high,h)
+    print(z0)
+    y += z0
+    y += z1
 
 
 X,Xf,Xdb = fft(x,fs,sig_len)
