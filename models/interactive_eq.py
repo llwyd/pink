@@ -63,10 +63,12 @@ print(freqs)
 
 band = []
 b = EQBand(freqs[1],freqs[0],fs)
+
 band.append(b)
 b = EQBand(freqs[2],freqs[1],fs)
 band.append(b)
 b = EQBand(freqs[3],freqs[2],fs)
+b.gain = 0.01
 band.append(b)
 b = EQBand(freqs[4],freqs[3],fs)
 band.append(b)
@@ -91,9 +93,8 @@ h = signal.unit_impulse(sig_len)
 y = 0
 for i in range(0,len(band)):
     h = signal.unit_impulse(sig_len)
-    z0 = signal.sosfilt(band[i].low,h)
-    z1 = signal.sosfilt(band[i].high,h)
-    print(z0)
+    z0 = signal.sosfilt(band[i].low,h) * band[i].gain
+    z1 = signal.sosfilt(band[i].high,h) * band[i].gain
     y += z0
     y += z1
 
