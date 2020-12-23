@@ -63,7 +63,6 @@ print(freqs)
 
 band = []
 b = EQBand(freqs[1],freqs[0],fs)
-
 band.append(b)
 b = EQBand(freqs[2],freqs[1],fs)
 band.append(b)
@@ -90,14 +89,18 @@ x3 = signal.sosfilt(band[3].high,x3)
 
 h = signal.unit_impulse(sig_len)
 
-y = 0
-for i in range(0,len(band)):
-    h = signal.unit_impulse(sig_len)
-    z0 = signal.sosfilt(band[i].low,h) * band[i].gain
-    z1 = signal.sosfilt(band[i].high,h) * band[i].gain
-    y += z0
-    y += z1
+def update():
+    y = 0
+    for i in range(0,len(band)):
+        h = signal.unit_impulse(sig_len)
+        z0 = signal.sosfilt(band[i].low,h) * band[i].gain
+        z1 = signal.sosfilt(band[i].high,h) * band[i].gain
+        y += z0
+        y += z1
 
+    return y
+
+y = update()
 
 X,Xf,Xdb = fft(x,fs,sig_len)
 X1,X1f,X1db = fft(x1,fs,sig_len)
@@ -106,12 +109,11 @@ X3,X3f,X3db = fft(x3,fs,sig_len)
 
 Y,Yf,Ydb = fft(y,fs,sig_len)
 
-l, = plt.semilogx(Xf,Xdb)
-l1, = plt.semilogx(X1f,X1db)
-l2, = plt.semilogx(X2f,X2db)
-l3, = plt.semilogx(X3f,X3db)
-ly, = plt.semilogx(Yf,Ydb)
-
+l,  = ax.semilogx(Xf,Xdb)
+l1, = ax.semilogx(X1f,X1db)
+l2, = ax.semilogx(X2f,X2db)
+l3, = ax.semilogx(X3f,X3db)
+ly, = ax.semilogx(Yf,Ydb)
 
 plt.hlines(-3,0,max(Xf))
 plt.ylim(-30,5)
@@ -120,6 +122,16 @@ plt.ylabel('Magnitude (dB)')
 
 def update_graph(val):
     print(band_0.val)
+    band[0].gain = band_0.val
+    band[1].gain = band_1.val
+    band[2].gain = band_2.val
+    band[3].gain = band_3.val
+    #band[4].gain = band_4.val
+    
+    y = update() 
+    Y,Yf,Ydb = fft(y,fs,sig_len)
+    
+    ly.set_ydata(Ydb)
 
 axcolor = 'lightgoldenrodyellow'
 axfreq_0 = plt.axes([0.2, 0.225, 0.65, 0.03], facecolor=axcolor)
