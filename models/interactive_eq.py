@@ -67,7 +67,6 @@ band.append(b)
 b = EQBand(freqs[2],freqs[1],fs)
 band.append(b)
 b = EQBand(freqs[3],freqs[2],fs)
-b.gain = 0.01
 band.append(b)
 b = EQBand(freqs[4],freqs[3],fs)
 band.append(b)
